@@ -1,15 +1,15 @@
-# MX Printer SDK
+# Edenx Printer SDK
 
-一个跨平台的打印机设备通信和图像处理SDK，支持多种连接方式和图像格式。
+一个专为Edenx打印机设计的Python SDK，提供设备通信、图像处理和数据管理功能。
 
 ## 主要特性
 
-- 🌐 **跨平台支持**: Windows、macOS、Linux、iOS、Android
-- 🔌 **多种连接方式**: USB、串口、网络
-- 🖼️ **图像处理**: 自动调整、格式转换、优化处理
-- 🔧 **多语言绑定**: C/C++、Python，更多语言支持计划中
-- 📱 **移动端支持**: iOS和Android平台
-- 🛠️ **易于集成**: 简单的API设计，详细的文档和示例
+- 🔌 **多种连接方式**: 支持USB和串口连接
+- 🖼️ **图像处理**: 基于OpenCV的图像扫描、分析和处理
+- 📦 **数据管理**: 完整的数据包、命令和响应处理
+- 🏭 **工厂模式**: 使用工厂模式创建连接策略和数据对象
+- 🔄 **异步通信**: 支持异步数据传输和回调处理
+- 🛠️ **易于集成**: 简单的API设计，详细的模块化结构
 
 ## 项目结构
 
@@ -18,138 +18,171 @@ sdk/
 ├── README.md              # 项目说明文档
 ├── __init__.py            # Python包初始化文件
 ├── docs/                  # 文档目录
-│   └── architecture.md   # 架构设计文档
 ├── examples/              # 示例代码
-│   ├── cpp/              # C++示例
-│   ├── java/             # Java示例
 │   └── python/           # Python示例
-├── include/               # C/C++头文件目录
-│   ├── common/           # 通用头文件
-│   └── mx_printer.h      # 主头文件
-├── src/                  # C/C++源码实现
-│   └── mx_printer.c      # 核心实现
-├── platforms/            # 平台特定文件和构建脚本
-│   ├── linux/           # Linux平台
-│   ├── macos/           # macOS平台
-│   ├── mobile/          # 移动平台
-│   └── windows/         # Windows平台
 ├── python/              # Python SDK
 │   ├── __init__.py     # Python包初始化
-│   └── mxSdk/          # 核心Python模块
-│       ├── connection/ # 连接管理模块
-│       ├── core/       # 核心功能模块
-│       ├── data/       # 数据类型模块
-│       ├── enums/      # 枚举定义模块
-│       ├── factories/  # 工厂类模块
-│       ├── opencv/     # 图像处理模块
-│       ├── packets/    # 数据包模块
-│       └── utils/      # 工具类模块
+│   ├── mxSdk/          # 核心Python模块
+│   │   ├── __init__.py # 模块初始化
+│   │   ├── connection/ # 连接管理模块
+│   │   │   ├── factory.py      # 连接策略工厂
+│   │   │   ├── strategy.py    # 连接策略基类
+│   │   │   ├── usb.py         # USB连接实现
+│   │   │   └── serial.py      # 串口连接实现
+│   │   ├── data/       # 数据类型模块
+│   │   │   ├── logo_data.py       # 标志数据
+│   │   │   ├── logo_image.py      # 标志图像
+│   │   │   ├── row_data.py        # 行数据
+│   │   │   ├── row_image.py       # 行图像
+│   │   │   ├── multi_row_data.py  # 多行数据
+│   │   │   └── multi_row_image.py # 多行图像
+│   │   ├── enums/      # 枚举定义模块
+│   │   │   ├── conn_type.py           # 连接类型
+│   │   │   ├── connection_status.py   # 连接状态
+│   │   │   ├── data_send_type.py      # 数据发送类型
+│   │   │   ├── event_type.py          # 事件类型
+│   │   │   ├── firmware_type.py       # 固件类型
+│   │   │   ├── op_code.py             # 操作码
+│   │   │   ├── paper_type.py          # 纸张类型
+│   │   │   └── row_layout_direction.py # 行布局方向
+│   │   ├── factories/  # 工厂类模块
+│   │   │   ├── logo_data_factory.py      # 标志数据工厂
+│   │   │   └── multi_row_data_factory.py # 多行数据工厂
+│   │   ├── models/     # 模型类模块
+│   │   │   ├── command.py         # 命令模型
+│   │   │   ├── command_callback.py # 命令回调
+│   │   │   ├── command_context.py # 命令上下文
+│   │   │   ├── data_obj.py        # 数据对象
+│   │   │   ├── data_obj_callback.py # 数据对象回调
+│   │   │   └── data_obj_context.py # 数据对象上下文
+│   │   ├── opencv/     # 图像处理模块
+│   │   │   ├── base_utils.py         # 基础工具
+│   │   │   ├── background_cleaner.py # 背景清理
+│   │   │   ├── image_analysis.py     # 图像分析
+│   │   │   ├── image_effects.py      # 图像效果
+│   │   │   ├── image_geometry.py     # 图像几何
+│   │   │   ├── image_scanner.py      # 图像扫描
+│   │   │   └── opencv_utils.py       # OpenCV工具
+│   │   ├── packets/    # 数据包模块
+│   │   ├── transport/  # 传输模块
+│   │   └── utils/      # 工具类模块
+│   └── mxSdk_bin/      # 编译后的二进制模块
+├── src/                  # C/C++源码实现
+│   └── mx_printer.c     # 核心实现
 └── tools/               # 构建和开发工具
-    └── build_sdk.py    # SDK构建脚本
+    └── build_sdk.py     # SDK构建脚本
 ```
 
 ## 快速开始
 
-### 构建SDK
-
-#### 使用平台特定脚本
-
-**macOS:**
-```bash
-cd sdk/platforms/macos
-./build.sh
-```
-
-**Linux:**
-```bash
-cd sdk/platforms/linux
-./build.sh
-```
-
-**Windows:**
-```cmd
-cd sdk\platforms\windows
-build.bat
-```
-
-#### 使用CMake（推荐）
+### 安装依赖
 
 ```bash
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
-cmake --install .
+pip install -r requirements.txt
 ```
 
-### C/C++ API
-
-```c
-#include "mx_printer.h"
-
-int main() {
-    // 初始化SDK
-    mx_handle_t handle = mx_init();
-    if (!handle) {
-        printf("SDK初始化失败\n");
-        return -1;
-    }
-    
-    // 扫描设备
-    mx_device_info_t devices[10];
-    size_t device_count;
-    mx_error_t result = mx_scan_devices(handle, devices, 10, &device_count);
-    
-    if (result == MX_SUCCESS) {
-        printf("找到 %zu 个设备\n", device_count);
-    }
-    
-    // 清理资源
-    mx_cleanup(handle);
-    return 0;
-}
-```
-
-### Python API
+### 基本使用
 
 ```python
-from mxSdk.connection import ConnectionStrategyFactory
+from sdk.python import mxSdk
+from mxSdk.connection.factory import ConnectionStrategyFactory
 from mxSdk.enums import ConnType, ConnectionStatus
 from mxSdk.data import LogoData
-from mxSdk.utils import RBQLog
 
-# 初始化日志
-logger = RBQLog()
-
-# 创建连接策略
+# 创建连接策略工厂
 factory = ConnectionStrategyFactory()
+
+# 创建USB连接策略
 usb_strategy = factory.create_strategy(ConnType.USB)
 
 # 连接设备
 if usb_strategy.connect():
-    logger.info("设备连接成功")
+    print("设备连接成功")
+    
+    # 创建数据对象
+    logo_data = LogoData()
     
     # 发送数据
-    data = b"Hello, Printer!"
-    usb_strategy.write_data(data)
+    usb_strategy.write_data(logo_data.to_bytes())
     
     # 断开连接
     usb_strategy.disconnect()
 else:
-    logger.error("设备连接失败")
+    print("设备连接失败")
 ```
 
-## 安装和构建
+### 图像处理
 
-### 预编译库使用
+```python
+from mxSdk.opencv import ImageScanner, ImageProcessor
 
-1. 下载对应平台的预编译库
-2. 将 `include` 目录添加到编译器包含路径
-3. 链接对应平台的库文件
+# 创建图像扫描器
+scanner = ImageScanner()
 
-### 从源码构建
+# 扫描图像
+image = scanner.scan_image("path/to/image.jpg")
+
+# 创建图像处理器
+processor = ImageProcessor()
+
+# 处理图像
+processed_image = processor.process_image(image)
+```
+
+## API 概览
+
+### 核心模块
+
+#### 连接管理 (connection)
+- `ConnectionStrategyFactory`: 创建连接策略的工厂类
+- `ConnectionStrategy`: 连接策略基类
+- `UsbConnectionStrategy`: USB连接实现
+- `SerialConnectionStrategy`: 串口连接实现
+
+#### 数据类型 (data)
+- `LogoData`: 打印机默认打印，既logo数据类
+- `LogoImage`: 打印机默认打印，既logo图像类
+- `RowData`: 单行数据类
+- `RowImage`: 单行图像类
+- `MultiRowData`: 多行数据类
+- `MultiRowImage`: 多行图像类
+
+#### 枚举定义 (enums)
+- `ConnType`: 连接类型枚举
+- `ConnectionStatus`: 连接状态枚举
+- `DataSendType`: 数据发送类型枚举
+- `FirmwareType`: 固件类型枚举
+- `OpCode`: 操作码枚举
+- `PaperType`: 纸张类型枚举
+- `RowLayoutDirection`: 行布局方向枚举
+
+#### 工厂类 (factories)
+- `LogoDataFactory`: 标志数据工厂类
+- `MultiRowDataFactory`: 多行数据工厂类
+
+#### 模型类 (models)
+- `Command`: 命令模型类
+- `CommandCallback`: 命令回调类
+- `CommandContext`: 命令上下文类
+- `DataObj`: 数据对象类
+- `DataObjCallback`: 数据对象回调类
+- `DataObjContext`: 数据对象上下文类
+
+#### 图像处理 (opencv)
+- `ImageScanner`: 图像扫描器
+- `ImageProcessor`: 图像处理器
+- `BaseUtils`: 基础工具类
+- `BackgroundCleaner`: 背景清理器
+- `ImageAnalysis`: 图像分析工具
+- `ImageEffects`: 图像效果工具
+- `ImageGeometry`: 图像几何工具
+
+## 构建SDK
+
+### 使用构建脚本
 
 ```bash
-# 使用构建脚本
+# 构建当前平台
 python3 sdk/tools/build_sdk.py
 
 # 构建特定平台
@@ -159,92 +192,48 @@ python3 sdk/tools/build_sdk.py --platform macos/arm64
 python3 sdk/tools/build_sdk.py --all
 ```
 
+### 编译Python模块为二进制
+
+```bash
+# 使用项目提供的脚本
+python3 scripts/build_py_to_bin.py
+```
+
 ## 支持的平台
 
 | 操作系统 | 架构 | 状态 |
 |---------|------|------|
-| Windows | x86, x64, ARM64 | ✅ 支持 |
 | macOS | x86_64, ARM64 | ✅ 支持 |
-| Linux | x86_64, ARM64, ARMv7 | ✅ 支持 |
-| iOS | ARM64 | 🚧 开发中 |
-| Android | ARM64, ARMv7 | 🚧 开发中 |
-
-## API 概览
-
-### 核心功能
-
-- **设备管理**: 扫描、连接、断开设备
-- **数据通信**: 发送和接收数据
-- **图像处理**: 格式转换、尺寸调整、优化
-- **错误处理**: 详细的错误码和描述
-
-### C API
-
-```c
-// 初始化和清理
-edenx_handle_t edenx_init(void);
-void edenx_cleanup(edenx_handle_t handle);
-
-// 设备管理
-edenx_error_t edenx_scan_devices(...);
-edenx_error_t edenx_connect_device(...);
-edenx_error_t edenx_disconnect_device(...);
-
-// 数据通信
-edenx_error_t edenx_send_data(...);
-edenx_error_t edenx_receive_data(...);
-
-// 图像处理
-edenx_error_t edenx_process_image(...);
-```
-
-## 核心模块
-
-### C/C++ API (mx_printer.h)
-提供跨平台的C/C++接口，包括：
-- 设备扫描和连接管理
-- 数据收发功能
-- 图像处理接口
-- 错误处理机制
-
-### Python API (mxSdk)
-核心Python模块，提供完整的设备通信和图像处理功能。
+| Linux | x86_64, ARM64 | ✅ 支持 |
+| Windows | x64, x86 | ✅ 支持 |
 
 ## 依赖管理
 
-项目使用vcpkg进行C/C++依赖管理，支持以下可选功能：
-- `image-processing`: 图像处理功能（OpenCV、libjpeg等）
-- `usb-support`: USB设备支持（libusb）
-- `serial-support`: 串口设备支持（boost-asio）
-- `network-support`: 网络设备支持（curl、openssl）
-- `testing`: 测试框架（gtest、gmock）
+项目使用requirements.txt管理Python依赖，主要依赖包括：
+- PyQt5: GUI框架
+- Pillow: 图像处理
+- pyserial: 串口通信
+- opencv-python: 图像处理
+- numpy: 数值计算
+- cython: Python到C的编译器
 
 ## 持续集成
 
 项目配置了GitHub Actions自动构建，支持：
-- Windows (x64, x86, ARM64)
 - macOS (x86_64, ARM64)
 - Linux (x86_64)
-- Android (armeabi-v7a, arm64-v8a, x86, x86_64)
 
 每次推送和PR都会触发自动构建和测试。
 
-## 文档
-
-- [快速入门](docs/quick_start.md) - 快速上手指南
-- [架构设计](docs/architecture.md) - 系统架构说明
-- [API参考](docs/api_reference.md) - 完整API文档
-- [最佳实践](docs/best_practices.md) - 开发最佳实践
-- [迁移指南](docs/migration_guide.md) - 版本迁移指南
-
 ## 版本历史
 
-### v1.0.0 (2024)
+### v1.0.0 (2025)
 - 🎉 首次发布
-- ✅ 支持Windows、macOS、Linux平台
-- ✅ Python和C/C++绑定
-- ✅ 基本设备通信功能
+- ✅ 支持macOS和Linux平台
+- ✅ Python绑定
+- ✅ USB和串口通信功能
 - ✅ 图像处理功能
+- ✅ 数据包处理
 
 ## 贡献
 
@@ -264,12 +253,8 @@ edenx_error_t edenx_process_image(...);
 
 - **作者**: RBQ
 - **问题反馈**: [GitHub Issues]
-- **邮箱**: [联系邮箱]
-- **文档**: [在线文档地址]
-
-## 致谢
-
-感谢所有为这个项目做出贡献的开发者和用户。
+- **项目创建时间**: 2025
+- **Python版本**: 3.9
 
 ---
 

@@ -53,77 +53,84 @@ endif()
 message(STATUS "Target Platform: ${TARGET_PLATFORM}")
 message(STATUS "Target Architecture: ${TARGET_ARCH}")
 
-# 包含头文件目录
-include_directories(${CMAKE_SOURCE_DIR}/sdk/include)
+# 可选：构建C语言SDK
+option(BUILD_C_SDK "Build C language SDK (mx_printer)" OFF)
 
 # SDK源文件
 set(SDK_SOURCES
     sdk/src/mx_printer.c
 )
 
-# 创建静态库
-add_library(mx_printer_static STATIC ${SDK_SOURCES})
-target_include_directories(mx_printer_static PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/sdk/include>
-    $<INSTALL_INTERFACE:include>
-)
+# 仅在启用BUILD_C_SDK选项时构建C语言SDK
+if(BUILD_C_SDK)
+    message(STATUS "C language SDK (mx_printer) will be built")
+    
+    # 创建静态库
+    add_library(mx_printer_static STATIC ${SDK_SOURCES})
+    target_include_directories(mx_printer_static PUBLIC 
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/sdk/include>
+        $<INSTALL_INTERFACE:include>
+    )
 
-# 创建动态库
-add_library(mx_printer_shared SHARED ${SDK_SOURCES})
-target_include_directories(mx_printer_shared PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/sdk/include>
-    $<INSTALL_INTERFACE:include>
-)
+    # 创建动态库
+    add_library(mx_printer_shared SHARED ${SDK_SOURCES})
+    target_include_directories(mx_printer_shared PUBLIC 
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/sdk/include>
+        $<INSTALL_INTERFACE:include>
+    )
 
-# 设置库的输出名称
-set_target_properties(mx_printer_static PROPERTIES OUTPUT_NAME mx_printer)
-set_target_properties(mx_printer_shared PROPERTIES OUTPUT_NAME mx_printer)
+    # 设置库的输出名称
+    set_target_properties(mx_printer_static PROPERTIES OUTPUT_NAME mx_printer)
+    set_target_properties(mx_printer_shared PROPERTIES OUTPUT_NAME mx_printer)
 
-# 平台特定设置
-if(TARGET_PLATFORM STREQUAL "windows")
-    # Windows特定设置
-    target_compile_definitions(mx_printer_static PRIVATE MX_WINDOWS=1)
-    target_compile_definitions(mx_printer_shared PRIVATE MX_WINDOWS=1)
-    
-    # 导出符号
-    target_compile_definitions(mx_printer_shared PRIVATE MX_EXPORTS)
-    
-elseif(TARGET_PLATFORM STREQUAL "macos")
-    # macOS特定设置
-    target_compile_definitions(mx_printer_static PRIVATE MX_MACOS=1)
-    target_compile_definitions(mx_printer_shared PRIVATE MX_MACOS=1)
-    
-    # 查找系统框架
-    find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
-    find_library(IOKIT_FRAMEWORK IOKit)
-    
-    if(COREFOUNDATION_FRAMEWORK AND IOKIT_FRAMEWORK)
-        target_link_libraries(mx_printer_static ${COREFOUNDATION_FRAMEWORK} ${IOKIT_FRAMEWORK})
-        target_link_libraries(mx_printer_shared ${COREFOUNDATION_FRAMEWORK} ${IOKIT_FRAMEWORK})
+    # 平台特定设置
+    if(TARGET_PLATFORM STREQUAL "windows")
+        # Windows特定设置
+        target_compile_definitions(mx_printer_static PRIVATE MX_WINDOWS=1)
+        target_compile_definitions(mx_printer_shared PRIVATE MX_WINDOWS=1)
+        
+        # 导出符号
+        target_compile_definitions(mx_printer_shared PRIVATE MX_EXPORTS)
+        
+    elseif(TARGET_PLATFORM STREQUAL "macos")
+        # macOS特定设置
+        target_compile_definitions(mx_printer_static PRIVATE MX_MACOS=1)
+        target_compile_definitions(mx_printer_shared PRIVATE MX_MACOS=1)
+        
+        # 查找系统框架
+        find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
+        find_library(IOKIT_FRAMEWORK IOKit)
+        
+        if(COREFOUNDATION_FRAMEWORK AND IOKIT_FRAMEWORK)
+            target_link_libraries(mx_printer_static ${COREFOUNDATION_FRAMEWORK} ${IOKIT_FRAMEWORK})
+            target_link_libraries(mx_printer_shared ${COREFOUNDATION_FRAMEWORK} ${IOKIT_FRAMEWORK})
+        endif()
+        
+    elseif(TARGET_PLATFORM STREQUAL "linux")
+        # Linux特定设置
+        target_compile_definitions(mx_printer_static PRIVATE MX_LINUX=1)
+        target_compile_definitions(mx_printer_shared PRIVATE MX_LINUX=1)
+        
+        # 链接系统库
+        target_link_libraries(mx_printer_static pthread)
+        target_link_libraries(mx_printer_shared pthread)
     endif()
-    
-elseif(TARGET_PLATFORM STREQUAL "linux")
-    # Linux特定设置
-    target_compile_definitions(mx_printer_static PRIVATE MX_LINUX=1)
-    target_compile_definitions(mx_printer_shared PRIVATE MX_LINUX=1)
-    
-    # 链接系统库
-    target_link_libraries(mx_printer_static pthread)
-    target_link_libraries(mx_printer_shared pthread)
+
+    # 安装配置
+    install(TARGETS mx_printer_static mx_printer_shared
+        EXPORT MXPrinterTargets
+        LIBRARY DESTINATION lib/${TARGET_PLATFORM}/${TARGET_ARCH}
+        ARCHIVE DESTINATION lib/${TARGET_PLATFORM}/${TARGET_ARCH}
+        RUNTIME DESTINATION bin/${TARGET_PLATFORM}/${TARGET_ARCH}
+    )
+
+    # 安装头文件
+    install(FILES sdk/include/mx_printer.h
+        DESTINATION include
+    )
+else()
+    message(STATUS "C language SDK (mx_printer) will not be built")
 endif()
-
-# 安装配置
-install(TARGETS mx_printer_static mx_printer_shared
-    EXPORT MXPrinterTargets
-    LIBRARY DESTINATION lib/${TARGET_PLATFORM}/${TARGET_ARCH}
-    ARCHIVE DESTINATION lib/${TARGET_PLATFORM}/${TARGET_ARCH}
-    RUNTIME DESTINATION bin/${TARGET_PLATFORM}/${TARGET_ARCH}
-)
-
-# 安装头文件
-install(FILES sdk/include/mx_printer.h
-    DESTINATION include
-)
 
 # 创建配置文件
 include(CMakePackageConfigHelpers)
@@ -133,12 +140,15 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 
-# 导出目标
-install(EXPORT MXPrinterTargets
-    FILE MXPrinterTargets.cmake
-    NAMESPACE MXPrinter::
-    DESTINATION lib/cmake/MXPrinter
-)
+# 仅在启用BUILD_C_SDK选项时导出C语言SDK目标
+if(BUILD_C_SDK)
+    # 导出目标
+    install(EXPORT MXPrinterTargets
+        FILE MXPrinterTargets.cmake
+        NAMESPACE MXPrinter::
+        DESTINATION lib/cmake/MXPrinter
+    )
+endif()
 
 # 配置文件
 configure_file(

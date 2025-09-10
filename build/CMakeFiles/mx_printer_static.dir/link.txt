@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc lib/libmx_printer.a CMakeFiles/mx_printer_static.dir/sdk/src/mx_printer.c.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib lib/libmx_printer.a

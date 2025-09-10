@@ -1,0 +1,43 @@
+# EdenxPrinter 项目依赖
+# 作者: RBQ
+# 版本: 1.0.0
+
+# GUI框架
+PyQt5>=5.15.0
+
+# 图像处理
+Pillow>=8.0.0
+numpy<2.0.0
+opencv-python>=4.5.0
+
+# 串口通信
+pyserial>=3.5
+
+# 网络通信
+requests>=2.25.0
+
+# 蓝牙通信 (可选)
+# pybluez>=0.23; sys_platform != "darwin"
+
+# USB通信
+pyusb>=1.2.0
+
+# 系统工具
+psutil>=5.8.0
+
+# 配置文件处理
+PyYAML>=5.4.0
+configparser>=5.0.0
+
+# 日志处理
+loguru>=0.5.0
+
+# 开发和测试工具
+pytest>=6.0.0
+pytest-qt>=4.0.0
+flake8>=3.8.0
+black>=21.0.0
+
+# 编译相关依赖
+cython>=0.29.32
+pycryptodome>=3.15.0

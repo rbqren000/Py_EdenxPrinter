@@ -1,0 +1,213 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.9'
+  CYTHON_VERSION: '0.29.32'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            shell: bash
+          - os: macos-13
+            platform: macos
+            arch: x64
+            shell: bash
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            shell: bash
+          - os: windows-latest
+            platform: windows
+            arch: x64
+            shell: pwsh
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install gettext (macOS)
+      if: runner.os == 'macOS'
+      run: brew install gettext
+
+    - name: Configure dynamic linker path (macOS)
+      if: runner.os == 'macOS'
+      run: echo "DYLD_LIBRARY_PATH=$(brew --prefix)/lib" >> $GITHUB_ENV
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        architecture: ${{ matrix.arch }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip wheel
+        pip install cython==${{ env.CYTHON_VERSION }} setuptools numpy
+        pip install -r requirements.txt
+
+    - name: Install system dependencies (Linux)
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential pkg-config
+        sudo apt-get install -y libopencv-dev python3-opencv
+
+    - name: Install system dependencies (macOS)
+      if: matrix.platform == 'macos'
+      run: |
+        brew update
+        brew install opencv pkg-config
+
+    - name: Install system dependencies (Windows)
+      if: matrix.platform == 'windows'
+      run: |
+        # Windows依赖通过pip安装
+        pip install setuptools<58.0.0
+        pip install opencv-python
+
+    - name: Set build directory paths
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          echo "BUILD_DIR=build\\${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "BUILD_DIR_UNIX=build/${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+        else
+          echo "BUILD_DIR=build/${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+          echo "BUILD_DIR_UNIX=build/${{ matrix.platform }}-${{ matrix.arch }}" >> $GITHUB_ENV
+        fi
+
+    - name: Create build directory
+      shell: bash
+      run: mkdir -p "${{ env.BUILD_DIR_UNIX }}"
+
+    - name: Build binaries
+      env:
+        PYTHONPATH: ${{ github.workspace }}
+      run: |
+        python scripts/build_py_to_bin.py --output="${{ env.BUILD_DIR_UNIX }}" --verbose
+
+    - name: Verify build output
+      shell: bash
+      run: |
+        echo "Build directory contents:"
+        echo "Platform: ${{ matrix.platform }}, Shell: ${{ matrix.shell }}"
+        ls -la "${{ env.BUILD_DIR_UNIX }}"
+
+    - name: Run basic tests
+      shell: bash
+      run: |
+        cd "${{ env.BUILD_DIR_UNIX }}"
+        python -c "
+        import sys
+        import os
+        # 将当前目录添加到模块搜索路径
+        sys.path.insert(0, os.getcwd())
+        print(f'Current working directory: {os.getcwd()}')
+        print(f'Python path: {sys.path}')
+        print('Listing directory contents:')
+        os.system('ls -R')
+        try:
+            print('Attempting to import compiled mxSdk module...')
+            # 尝试导入一个核心的、不太可能为空的模块
+            from mxSdk import enums
+            print('Successfully imported mxSdk.enums')
+            # 你可以添加更多导入测试
+            # from mxSdk.utils import some_util
+            # print('Successfully imported a utility')
+            print('Build verification successful!')
+        except ImportError as e:
+            print(f'Test failed: Failed to import compiled module. Error: {e}')
+            sys.exit(1)
+        except Exception as e:
+            print(f'An unexpected error occurred during testing: {e}')
+            sys.exit(1)
+        "
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mxsdk-${{ matrix.platform }}-${{ matrix.arch }}
+        path: ${{ env.BUILD_DIR_UNIX }}
+        retention-days: 30
+
+    - name: Prepare release assets
+      if: startsWith(github.ref, 'refs/tags/v')
+      shell: bash
+      run: |
+        cd "${{ env.BUILD_DIR_UNIX }}"
+        if [ "${{ matrix.platform }}" = "windows" ]; then
+          7z a "../mxsdk-${{ matrix.platform }}-${{ matrix.arch }}.zip" .
+        else
+          tar -czf "../mxsdk-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz" .
+        fi
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts
+
+    - name: Generate release notes
+      id: release-notes
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        
+        # 生成更新日志
+        NOTES=$(git log --pretty=format:'- %s' $(git describe --tags --abbrev=0 HEAD^)..HEAD)
+        echo "NOTES<<EOF" >> $GITHUB_OUTPUT
+        echo "$NOTES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ steps.release-notes.outputs.VERSION }}
+        body: |
+          ## 更新内容
+          ${{ steps.release-notes.outputs.NOTES }}
+          
+          ## 下载说明
+          - Linux x64: `mxsdk-linux-x64.tar.gz`
+          - macOS x64: `mxsdk-macos-x64.tar.gz`  
+          - macOS ARM64: `mxsdk-macos-arm64.tar.gz`
+          - Windows x64: `mxsdk-windows-x64.zip`
+        files: |
+          artifacts/**/*
+        draft: false
+        prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}

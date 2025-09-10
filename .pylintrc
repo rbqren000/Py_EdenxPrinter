@@ -1,0 +1,243 @@
+# EdenxPrinter Pylint配置
+# 作者: RBQ
+# 版本: 1.0.0
+
+[MASTER]
+# 指定要加载的插件
+load-plugins=
+
+# 使用多进程加速检查
+jobs=1
+
+# 控制pylint的错误输出
+persistent=yes
+
+# 缓存目录
+cache-size=500
+
+# 忽略的文件或目录
+ignore=CVS,.git,__pycache__,venv,build,dist
+
+# 忽略的文件模式
+ignore-patterns=
+
+[MESSAGES CONTROL]
+# 禁用的检查
+disable=
+    C0103,  # invalid-name
+    C0111,  # missing-docstring
+    C0301,  # line-too-long
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    W0613,  # unused-argument
+    W0622,  # redefined-builtin
+    E1101,  # no-member (PyQt5相关)
+    C0415,  # import-outside-toplevel
+
+# 启用的检查
+enable=
+    F,      # 致命错误
+    E,      # 错误
+    W,      # 警告
+    R,      # 重构建议
+    C,      # 约定检查
+
+[REPORTS]
+# 设置输出格式
+output-format=text
+
+# 包含消息的报告
+reports=no
+
+# 评分显示
+score=yes
+
+[REFACTORING]
+# 最大嵌套块数
+max-nested-blocks=5
+
+# 从不返回的函数
+never-returning-functions=sys.exit
+
+[LOGGING]
+# 日志模块名称
+logging-modules=logging
+
+[SPELLING]
+# 拼写检查
+spelling-dict=
+spelling-ignore-words=
+spelling-private-dict-file=
+
+[MISCELLANEOUS]
+# 注释中的标记
+notes=FIXME,XXX,TODO
+
+[TYPECHECK]
+# 忽略的模块
+ignored-modules=
+
+# 忽略的类
+ignored-classes=optparse.Values,thread._local,_thread._local
+
+# 生成的成员
+generated-members=
+
+# 上下文管理器
+contextmanager-decorators=contextlib.contextmanager
+
+[VARIABLES]
+# 告诉pylint哪些变量名是可以的
+good-names=i,j,k,ex,Run,_,x,y,z,id,db
+
+# 坏的变量名
+bad-names=foo,bar,baz,toto,tutu,tata
+
+# 变量名的正则表达式
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# 常量名的正则表达式
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+# 属性名的正则表达式
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# 参数名的正则表达式
+argument-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# 类属性名的正则表达式
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+
+# 内联变量名的正则表达式
+inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
+
+# 类名的正则表达式
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+# 函数名的正则表达式
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# 方法名的正则表达式
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# 模块名的正则表达式
+module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
+
+[FORMAT]
+# 最大行长度
+max-line-length=88
+
+# 忽略长行的正则表达式
+ignore-long-lines=^\s*(# )?<?https?://\S+>?$
+
+# 单行if语句
+single-line-if-stmt=no
+
+# 缩进字符串
+indent-string='    '
+
+# 缩进后的续行
+indent-after-paren=4
+
+# 期望的行结束格式
+expected-line-ending-format=
+
+[SIMILARITIES]
+# 最小相似行数
+min-similarity-lines=4
+
+# 忽略注释
+ignore-comments=yes
+
+# 忽略文档字符串
+ignore-docstrings=yes
+
+# 忽略导入
+ignore-imports=no
+
+[BASIC]
+# 好的名字，应该匹配这些表达式
+good-names-rgxs=
+
+# 坏的名字，应该匹配这些表达式
+bad-names-rgxs=
+
+# 包含名字提示的正则表达式
+name-hint-rgxs=
+
+# 包括的命名风格
+include-naming-hint=no
+
+# 属性名命名风格
+property-classes=abc.abstractproperty
+
+[STRING]
+# 检查引号的一致性
+check-quote-consistency=no
+
+# 检查字符串格式
+check-str-concat-over-line-jumps=no
+
+[IMPORTS]
+# 已弃用的模块
+deprecated-modules=optparse,tkinter.tix
+
+# 导入图
+import-graph=
+
+# 外部导入图
+ext-import-graph=
+
+# 内部导入图
+int-import-graph=
+
+# 强制导入顺序
+known-standard-library=
+
+# 强制导入顺序
+known-third-party=
+
+# 分析回退导入
+analyse-fallback-blocks=no
+
+[CLASSES]
+# 有效的类属性名称列表
+valid-classmethod-first-arg=cls
+
+# 有效的元类属性名称列表
+valid-metaclass=type
+
+# 排除受保护的访问警告的成员名称列表
+exclude-protected=_asdict,_fields,_replace,_source,_make
+
+[DESIGN]
+# 参数的最大数量
+max-args=5
+
+# 局部变量的最大数量
+max-locals=15
+
+# 返回语句的最大数量
+max-returns=6
+
+# 分支的最大数量
+max-branches=12
+
+# 语句的最大数量
+max-statements=50
+
+# 父类的最大数量
+max-parents=7
+
+# 属性的最大数量
+max-attributes=7
+
+# 公共方法的最大数量
+max-public-methods=20
+
+# 布尔表达式的最大复杂度
+max-bool-expr=5
+
+[EXCEPTIONS]
+# 可以在except语句中使用的异常
+overgeneral-exceptions=Exception

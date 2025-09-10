@@ -1,0 +1,63 @@
+{
+  "name": "mx-printer-sdk",
+  "version": "1.0.0",
+  "description": "MX Printer SDK - 跨平台打印机设备通信和图像处理SDK",
+  "homepage": "https://github.com/rbq/mx-printer-sdk",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ],
+  "features": {
+    "image-processing": {
+      "description": "启用图像处理功能",
+      "dependencies": [
+        "opencv4",
+        "libjpeg-turbo",
+        "libpng",
+        "tiff"
+      ]
+    },
+    "usb-support": {
+      "description": "启用USB设备支持",
+      "dependencies": [
+        "libusb"
+      ]
+    },
+    "serial-support": {
+      "description": "启用串口设备支持",
+      "dependencies": [
+        {
+          "name": "boost-asio",
+          "platform": "!windows"
+        }
+      ]
+    },
+    "network-support": {
+      "description": "启用网络设备支持",
+      "dependencies": [
+        "curl",
+        "openssl"
+      ]
+    },
+    "testing": {
+      "description": "启用测试框架",
+      "dependencies": [
+        "gtest",
+        "gmock"
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "name": "opencv4",
+      "version": "4.8.0"
+    }
+  ]
+}

@@ -171,6 +171,16 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+      deployments: write
+      discussions: write
+      issues: write
+      packages: write
+      pages: write
+      statuses: write
     
     steps:
     - name: Checkout code
@@ -194,7 +204,7 @@ jobs:
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref }}
         name: Release ${{ steps.release-notes.outputs.VERSION }}
